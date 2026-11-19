@@ -1,5 +1,1 @@
-[
-  { "name": "1-cover.jpg", "query": "?shot=cover&photo=pier&caption=Sunset%20Heist", "w": 1080, "h": 1080 },
-  { "name": "2-editor.jpg", "query": "?shot=editor&photo=boulevard&caption=Boulevard%20Queen", "w": 1280, "h": 720 },
-  { "name": "3-cover.jpg", "query": "?shot=cover&photo=boulevard&caption=Boulevard%20Queen", "w": 1080, "h": 1080 }
-]
+[{"h":720,"name":"1-cover.jpg","query":"?shot=cover&photo=pier&layout=hero&grade=sunset&caption=VICE%20HEAT&panels=all","w":1280},{"h":1000,"name":"2-editor.jpg","query":"?shot=editor&photo=boulevard&layout=hero&grade=sunset&caption=VICE%20HEAT&panels=all","w":1280},{"h":1280,"name":"3-portrait.jpg","query":"?shot=cover&photo=boulevard&layout=triptych&grade=neon&caption=MIDNIGHT%20RUN&panels=all","w":1024},{"h":1080,"name":"4-square.jpg","query":"?shot=cover&photo=pier&layout=corners&grade=ocean&caption=SALT%20AIR&panels=all","w":1080}]
