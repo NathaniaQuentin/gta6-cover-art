@@ -1,74 +1,78 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Cover Studio — GTA-style cover art maker</title>
 <link rel="icon" href="data:,">
+<title>Vice Cover Studio — GTA-style cover art maker</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
+<header class="top">
   <h1>VICE COVER STUDIO</h1>
-  <p>Turn your photo into GTA-style cover art — offline, in your browser.</p>
+  <p class="tag">Turn your photo into GTA-style cover art. Everything runs offline, in your browser.</p>
 </header>
-<main>
-  <section class="preview">
-    <canvas id="cover" width="1920" height="1080"></canvas>
-    <p class="hint">Click a panel to select it. Drag to move its photo, scroll to zoom.</p>
+<main class="studio">
+  <section class="preview-pane">
+    <canvas id="preview" width="960" height="600" aria-label="Cover preview"></canvas>
+    <p id="status" class="status">Pick a layout, load a photo, write a caption — then export.</p>
   </section>
   <aside class="controls">
-    <section>
-      <h2>Layout</h2>
-      <div class="btnrow" id="layoutBtns">
+    <section class="group">
+      <h2>1 · Layout</h2>
+      <div class="row">
         <button type="button" data-layout="hero" class="active">Hero Split</button>
         <button type="button" data-layout="triptych">Triptych</button>
         <button type="button" data-layout="four">Four Corners</button>
       </div>
     </section>
-    <section>
-      <h2>Colour grade</h2>
-      <div class="btnrow" id="gradeBtns">
-        <button type="button" data-grade="sunset" class="active">Vice Sunset</button>
-        <button type="button" data-grade="neon">Neon Nights</button>
-        <button type="button" data-grade="ocean">Ocean Drive</button>
-        <button type="button" data-grade="noir">Noir Gold</button>
-      </div>
-    </section>
-    <section>
-      <h2>Caption</h2>
-      <label>Title <input id="caption" type="text" value="NEON HEAT" maxlength="24"></label>
-      <label>Subtitle <input id="subtitle" type="text" value="Vice City Nights" maxlength="40"></label>
-    </section>
-    <section>
-      <h2>Photo</h2>
-      <div class="btnrow" id="panelBtns"></div>
-      <div class="btnrow">
-        <button type="button" data-sample="pier">Pier photo</button>
-        <button type="button" data-sample="boulevard">Boulevard photo</button>
-        <button type="button" id="uploadBtn">Upload a photo&hellip;</button>
+    <section class="group">
+      <h2>2 · Photo</h2>
+      <div class="row">
+        <label class="upload" for="upload">Upload a photo</label>
         <input id="upload" type="file" accept="image/*" hidden>
+        <button type="button" id="sample-boulevard">Boulevard</button>
+        <button type="button" id="sample-pier">Pier</button>
       </div>
-      <label class="check"><input id="samePhoto" type="checkbox" checked> Same photo in all panels</label>
-      <label>Zoom <input id="zoom" type="range" min="1" max="3.5" step="0.05" value="1"> <span id="zoomVal">100%</span></label>
-      <button type="button" id="centreBtn">Centre photo</button>
-    </section>
-    <section>
-      <h2>Export</h2>
-      <div class="btnrow" id="sizeBtns">
-        <button type="button" data-size="1920x1080" class="active">1920 &times; 1080</button>
-        <button type="button" data-size="1080x1080">1080 &times; 1080</button>
-        <button type="button" data-size="1080x1350">1080 &times; 1350</button>
+      <label class="check"><input id="same-photo" type="checkbox"> Same photo in all panels</label>
+      <div class="row chips">
+        <button type="button" id="panel-0" class="chip active">Panel 1</button>
+        <button type="button" id="panel-1" class="chip">Panel 2</button>
+        <button type="button" id="panel-2" class="chip">Panel 3</button>
+        <button type="button" id="panel-3" class="chip">Panel 4</button>
       </div>
-      <button type="button" id="exportBtn" class="primary">Export PNG</button>
-      <button type="button" id="resetBtn">Reset</button>
+      <label class="slider-label" for="zoom">Zoom panel <span id="zoom-val"></span></label>
+      <input id="zoom" type="range" min="0.4" max="3" step="0.05" value="1">
+      <button type="button" id="centre" class="small">Centre photo</button>
+      <p class="hint">Drag the preview to move the photo · scroll to zoom.</p>
     </section>
-    <p id="status" role="status"></p>
+    <section class="group">
+      <h2>3 · Caption</h2>
+      <label class="field-label" for="caption">Caption</label>
+      <input id="caption" type="text" value="MIDNIGHT HEAT" maxlength="40">
+      <label class="field-label" for="subtitle">Subtitle</label>
+      <input id="subtitle" type="text" value="Leonida Nights" maxlength="60">
+    </section>
+    <section class="group">
+      <h2>4 · Colour grade</h2>
+      <div class="row">
+        <button type="button" data-grade="viceSunset" class="active">Vice Sunset</button>
+        <button type="button" data-grade="neonNights">Neon Nights</button>
+        <button type="button" data-grade="oceanDrive">Ocean Drive</button>
+        <button type="button" data-grade="noirGold">Noir Gold</button>
+      </div>
+    </section>
+    <section class="group">
+      <h2>5 · Export PNG</h2>
+      <div class="row">
+        <button type="button" data-export="1080x1080">Square · 1080×1080</button>
+        <button type="button" data-export="1080x1350">Portrait · 1080×1350</button>
+        <button type="button" data-export="1920x1080">Wide · 1920×1080</button>
+      </div>
+      <p class="hint">The PNG is drawn fresh from your photo and caption — nothing is uploaded.</p>
+    </section>
   </aside>
 </main>
-<footer>
-  <p>Vice Cover Studio — an original cover art maker. No Rockstar artwork, logos or fonts. Your photos stay on your machine; nothing is uploaded.</p>
-</footer>
 <script src="src/cover.js"></script>
 <script src="src/main.js"></script>
 <script src="src/shots.js"></script>
