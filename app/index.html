@@ -3,76 +3,88 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:,">
 <title>Vice Cover Studio — GTA-style cover art maker</title>
+<link rel="icon" href="data:,">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="top">
-  <h1>VICE COVER STUDIO</h1>
-  <p class="tag">Turn your photo into GTA-style cover art. Everything runs offline, in your browser.</p>
+  <h1>VICE COVER <span>STUDIO</span></h1>
+  <p class="tag">Turn your photo into GTA-style cover art. Offline — nothing is ever uploaded.</p>
 </header>
+
 <main class="studio">
-  <section class="preview-pane">
-    <canvas id="preview" width="960" height="600" aria-label="Cover preview"></canvas>
-    <p id="status" class="status">Pick a layout, load a photo, write a caption — then export.</p>
+  <section class="preview-col">
+    <canvas id="preview" width="1080" height="1080"></canvas>
+    <div class="panel-row" aria-label="Pick a panel to edit">
+      <span class="panel-label">Panel:</span>
+      <button class="panel-dot active" type="button" aria-label="Panel 1">1</button>
+      <button class="panel-dot" type="button" aria-label="Panel 2">2</button>
+      <button class="panel-dot" type="button" aria-label="Panel 3">3</button>
+      <button class="panel-dot" type="button" aria-label="Panel 4">4</button>
+      <span class="hint">Drag the cover to move the photo, scroll to zoom.</span>
+    </div>
   </section>
-  <aside class="controls">
-    <section class="group">
-      <h2>1 · Layout</h2>
-      <div class="row">
+
+  <section class="controls">
+    <div class="group">
+      <h2>Layout</h2>
+      <div class="btn-row">
         <button type="button" data-layout="hero" class="active">Hero Split</button>
         <button type="button" data-layout="triptych">Triptych</button>
-        <button type="button" data-layout="four">Four Corners</button>
+        <button type="button" data-layout="corners">Four Corners</button>
       </div>
-    </section>
-    <section class="group">
-      <h2>2 · Photo</h2>
-      <div class="row">
-        <label class="upload" for="upload">Upload a photo</label>
-        <input id="upload" type="file" accept="image/*" hidden>
-        <button type="button" id="sample-boulevard">Boulevard</button>
-        <button type="button" id="sample-pier">Pier</button>
+    </div>
+
+    <div class="group">
+      <h2>Colour grade</h2>
+      <div class="btn-row">
+        <button type="button" data-grade="sunset" class="active">Vice Sunset</button>
+        <button type="button" data-grade="neon">Neon Nights</button>
+        <button type="button" data-grade="ocean">Ocean Drive</button>
+        <button type="button" data-grade="noir">Noir Gold</button>
       </div>
-      <label class="check"><input id="same-photo" type="checkbox"> Same photo in all panels</label>
-      <div class="row chips">
-        <button type="button" id="panel-0" class="chip active">Panel 1</button>
-        <button type="button" id="panel-1" class="chip">Panel 2</button>
-        <button type="button" id="panel-2" class="chip">Panel 3</button>
-        <button type="button" id="panel-3" class="chip">Panel 4</button>
+    </div>
+
+    <div class="group">
+      <h2>Photo</h2>
+      <label class="upload" for="upload">Choose a photo from your machine</label>
+      <input type="file" id="upload" accept="image/*">
+      <div class="btn-row">
+        <button type="button" data-sample="boulevard">Sample: Boulevard</button>
+        <button type="button" data-sample="pier">Sample: Pier</button>
       </div>
-      <label class="slider-label" for="zoom">Zoom panel <span id="zoom-val"></span></label>
-      <input id="zoom" type="range" min="0.4" max="3" step="0.05" value="1">
-      <button type="button" id="centre" class="small">Centre photo</button>
-      <p class="hint">Drag the preview to move the photo · scroll to zoom.</p>
-    </section>
-    <section class="group">
-      <h2>3 · Caption</h2>
-      <label class="field-label" for="caption">Caption</label>
-      <input id="caption" type="text" value="MIDNIGHT HEAT" maxlength="40">
-      <label class="field-label" for="subtitle">Subtitle</label>
-      <input id="subtitle" type="text" value="Leonida Nights" maxlength="60">
-    </section>
-    <section class="group">
-      <h2>4 · Colour grade</h2>
-      <div class="row">
-        <button type="button" data-grade="viceSunset" class="active">Vice Sunset</button>
-        <button type="button" data-grade="neonNights">Neon Nights</button>
-        <button type="button" data-grade="oceanDrive">Ocean Drive</button>
-        <button type="button" data-grade="noirGold">Noir Gold</button>
+      <label class="check"><input type="checkbox" id="samePhoto" checked> Same photo in all panels</label>
+    </div>
+
+    <div class="group">
+      <h2>Caption</h2>
+      <input type="text" id="caption" value="VICE HEAT" maxlength="24" aria-label="Caption">
+      <input type="text" id="subtitle" value="Leonida Nights" maxlength="32" aria-label="Subtitle">
+    </div>
+
+    <div class="group">
+      <h2>Selected panel</h2>
+      <div class="zoom-row">
+        <label for="zoom">Zoom <span id="zoomLabel">1.00x</span></label>
+        <input type="range" id="zoom" min="0" max="100" value="17">
+        <button type="button" id="centre">Centre</button>
       </div>
-    </section>
-    <section class="group">
-      <h2>5 · Export PNG</h2>
-      <div class="row">
-        <button type="button" data-export="1080x1080">Square · 1080×1080</button>
-        <button type="button" data-export="1080x1350">Portrait · 1080×1350</button>
-        <button type="button" data-export="1920x1080">Wide · 1920×1080</button>
+    </div>
+
+    <div class="group">
+      <h2>Export PNG</h2>
+      <div class="btn-row">
+        <button type="button" data-export="square">1080 &times; 1080</button>
+        <button type="button" data-export="portrait">1080 &times; 1350</button>
+        <button type="button" data-export="wide">1920 &times; 1080</button>
       </div>
-      <p class="hint">The PNG is drawn fresh from your photo and caption — nothing is uploaded.</p>
-    </section>
-  </aside>
+    </div>
+
+    <p class="fine">All art is drawn in code. Fonts Anton &amp; Archivo Black (SIL Open Font License). No Rockstar assets. Works offline.</p>
+  </section>
 </main>
+
 <script src="src/cover.js"></script>
 <script src="src/main.js"></script>
 <script src="src/shots.js"></script>
