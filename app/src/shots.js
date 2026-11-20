@@ -1,87 +1,62 @@
-'use strict';
-/* Vice Cover Studio — screenshot staging.
-   Sets the editor up for each of the four screenshots: the cover, the
-   editor itself, and the portrait and square covers. Scenes are chosen
-   by name, or spelled out in the page's query string, e.g.
-   ?shot=cover&photo=pier&caption=Neon%20Heat
-   Depends on main.js (window.__vc) and cover.js (LAYOUTS). */
+// Vice Cover Studio — screenshot staging for the entry's screenshots.
+// `?shot=cover|editor|portrait|square` picks a scene on load; the
+// `window.__vc.stage(name)` hook lets a screenshot script stage a scene and
+// wait for the fonts and the photo before capturing.
 
-const SCENES = {
-  cover: {
-    layout: 'hero', grade: 'sunset', photo: 'pier',
-    caption: 'NEON HEAT', subtitle: 'Vice City Nights', size: '1920x1080',
-  },
-  editor: {
-    layout: 'hero', grade: 'sunset', photo: 'pier',
-    caption: 'NEON HEAT', subtitle: 'Vice City Nights', size: '1920x1080',
-  },
-  portrait: {
-    layout: 'triptych', grade: 'neon', photo: 'boulevard',
-    caption: 'PALM SHADOWS', subtitle: 'Midnight Drive', size: '1080x1350',
-  },
-  square: {
-    layout: 'four', grade: 'ocean', photo: 'pier',
-    caption: 'GOLDEN HOUR', subtitle: 'Ocean Drive', size: '1080x1080',
-  },
-};
+(function () {
+  'use strict';
 
-/* Put the editor into one scene and render it, waiting for the fonts
-   and the photo so the canvas is final before a screenshot is taken. */
-async function stageScene(name) {
-  const scene = SCENES[name];
-  if (!scene) return false;
-  const vc = window.__vc;
-  await vc.ready;
-  const state = vc.state;
-  state.layout = scene.layout;
-  state.grade = scene.grade;
-  state.caption = scene.caption;
-  state.subtitle = scene.subtitle;
-  state.size = scene.size;
-  state.samePhoto = true;
-  state.selected = 0;
-  state.showSelection = false;
-  const count = LAYOUTS[scene.layout].panels;
-  state.panels = [];
-  for (let i = 0; i < count; i++) {
-    state.panels.push({ photo: scene.photo, zoom: 1, ox: 0, oy: 0 });
+  var SCENES = {
+    cover: { layout: 'hero', grade: 'viceSunset', caption: 'MIDNIGHT HEAT', subtitle: 'Leonida Nights' },
+    editor: { layout: 'hero', grade: 'viceSunset', caption: 'MIDNIGHT HEAT', subtitle: 'Leonida Nights' },
+    portrait: { layout: 'triptych', grade: 'neonNights', caption: 'PALM DUSK', subtitle: 'Midnight Drive' },
+    square: { layout: 'four', grade: 'oceanDrive', caption: 'NEON TIDE', subtitle: 'Vice City' }
+  };
+
+  function currentScene() {
+    var m = /[?&]shot=([a-z]+)/.exec(window.location.search || '');
+    return (m && SCENES[m[1]]) ? m[1] : 'cover';
   }
-  await vc.loadPhoto(scene.photo);
-  vc.render();
-  await document.fonts.ready;
-  vc.render();
-  return true;
-}
 
-/* Apply a query string over the current state, e.g. the shots.json
-   entries: ?shot=cover&photo=pier&caption=Neon%20Heat */
-async function applyQuery(search) {
-  const q = new URLSearchParams(search);
-  if (q.get('shot') && SCENES[q.get('shot')]) {
-    await stageScene(q.get('shot'));
-    return;
-  }
-  const vc = window.__vc;
-  await vc.ready;
-  const state = vc.state;
-  if (q.get('layout') && LAYOUTS[q.get('layout')]) state.layout = q.get('layout');
-  if (q.get('grade')) state.grade = q.get('grade');
-  if (q.get('caption')) state.caption = q.get('caption');
-  if (q.get('subtitle')) state.subtitle = q.get('subtitle');
-  if (q.get('size')) state.size = q.get('size');
-  if (q.get('photo')) {
-    const count = LAYOUTS[state.layout].panels;
-    state.panels = [];
-    for (let i = 0; i < count; i++) {
-      state.panels.push({ photo: q.get('photo'), zoom: 1, ox: 0, oy: 0 });
+  function stage(name, done) {
+    var scene = SCENES[name] || SCENES.cover;
+    var studio = window.ViceStudio;
+    if (!studio) { if (done) done(); return; }
+    studio.state.layout = scene.layout;
+    studio.state.grade = scene.grade;
+    studio.state.caption = scene.caption;
+    studio.state.subtitle = scene.subtitle;
+    studio.state.samePhoto = true;
+    var img = new Image();
+    var settled = false;
+    function finish() {
+      if (settled) return;
+      settled = true;
+      studio.render();
+      if (done) done();
     }
-    await vc.loadPhoto(q.get('photo'));
+    img.onload = function () {
+      studio.state.photos[0] = img;
+      for (var i = 1; i < 4; i++) studio.state.photos[i] = img;
+      finish();
+    };
+    img.onerror = finish;
+    img.src = 'samples/boulevard.jpg';
+    // If the fonts are still loading, wait for them so the caption lettering
+    // is the real Anton / Archivo Black in the capture.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { studio.render(); });
+    }
+    setTimeout(finish, 2500);
   }
-  state.selected = 0;
-  vc.render();
-  await document.fonts.ready;
-  vc.render();
-}
 
-window.__vc.stage = stageScene;
-window.__vc.staged = applyQuery(window.location.search);
+  window.__vc = {
+    stage: stage,
+    scene: currentScene,
+    scenes: Object.keys(SCENES)
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    stage(currentScene());
+  });
+})();
