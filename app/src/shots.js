@@ -1,46 +1,87 @@
-// Fixed scenes for screenshots: ?shot=editor shows the editor with a sample
-// photo loaded; ?shot=cover hides the controls and shows the cover alone.
-// `photo` picks the sample (samples/<photo>.jpg), `caption` and `subtitle`
-// the words, `layout` and `grade` the look, `panels=all` fills every panel
-// with the same photo. window.__shotReady is set once painted.
-const LAYOUTS = ['hero', 'triptych', 'corners'];
-const GRADES = ['sunset', 'neon', 'ocean', 'noir'];
+'use strict';
+/* Vice Cover Studio — screenshot staging.
+   Sets the editor up for each of the four screenshots: the cover, the
+   editor itself, and the portrait and square covers. Scenes are chosen
+   by name, or spelled out in the page's query string, e.g.
+   ?shot=cover&photo=pier&caption=Neon%20Heat
+   Depends on main.js (window.__vc) and cover.js (LAYOUTS). */
 
-/**
- * Configure the editor from the URL query and paint it.
- * ctx: { state, fitPanels, loadSample, redraw } from main.js.
- */
-export async function runShot(query, ctx) {
-  const { state, fitPanels, loadSample, redraw } = ctx;
-  const layout = query.get('layout');
-  if (layout && LAYOUTS.includes(layout)) state.layout = layout;
-  const grade = query.get('grade');
-  if (grade && GRADES.includes(grade)) state.grade = grade;
-  const caption = query.get('caption');
-  if (caption !== null) {
-    state.caption = caption;
-    const el = document.getElementById('caption');
-    if (el) el.value = caption;
+const SCENES = {
+  cover: {
+    layout: 'hero', grade: 'sunset', photo: 'pier',
+    caption: 'NEON HEAT', subtitle: 'Vice City Nights', size: '1920x1080',
+  },
+  editor: {
+    layout: 'hero', grade: 'sunset', photo: 'pier',
+    caption: 'NEON HEAT', subtitle: 'Vice City Nights', size: '1920x1080',
+  },
+  portrait: {
+    layout: 'triptych', grade: 'neon', photo: 'boulevard',
+    caption: 'PALM SHADOWS', subtitle: 'Midnight Drive', size: '1080x1350',
+  },
+  square: {
+    layout: 'four', grade: 'ocean', photo: 'pier',
+    caption: 'GOLDEN HOUR', subtitle: 'Ocean Drive', size: '1080x1080',
+  },
+};
+
+/* Put the editor into one scene and render it, waiting for the fonts
+   and the photo so the canvas is final before a screenshot is taken. */
+async function stageScene(name) {
+  const scene = SCENES[name];
+  if (!scene) return false;
+  const vc = window.__vc;
+  await vc.ready;
+  const state = vc.state;
+  state.layout = scene.layout;
+  state.grade = scene.grade;
+  state.caption = scene.caption;
+  state.subtitle = scene.subtitle;
+  state.size = scene.size;
+  state.samePhoto = true;
+  state.selected = 0;
+  state.showSelection = false;
+  const count = LAYOUTS[scene.layout].panels;
+  state.panels = [];
+  for (let i = 0; i < count; i++) {
+    state.panels.push({ photo: scene.photo, zoom: 1, ox: 0, oy: 0 });
   }
-  const subtitle = query.get('subtitle');
-  if (subtitle !== null) {
-    state.subtitle = subtitle;
-    const el = document.getElementById('subtitle');
-    if (el) el.value = subtitle;
-  }
-  fitPanels();
-  const photo = query.get('photo') ?? 'pier';
-  await loadSample(photo, 0);
-  if (query.get('panels') === 'all') {
-    for (let i = 1; i < state.panels.length; i++) {
-      state.panels[i].img = state.panels[0].img;
-    }
-  }
-  if (query.get('shot') === 'cover') {
-    state.hideSelection = true;
-    document.body.classList.add('shot-cover');
-  }
-  redraw();
-  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  window.__shotReady = true;
+  await vc.loadPhoto(scene.photo);
+  vc.render();
+  await document.fonts.ready;
+  vc.render();
+  return true;
 }
+
+/* Apply a query string over the current state, e.g. the shots.json
+   entries: ?shot=cover&photo=pier&caption=Neon%20Heat */
+async function applyQuery(search) {
+  const q = new URLSearchParams(search);
+  if (q.get('shot') && SCENES[q.get('shot')]) {
+    await stageScene(q.get('shot'));
+    return;
+  }
+  const vc = window.__vc;
+  await vc.ready;
+  const state = vc.state;
+  if (q.get('layout') && LAYOUTS[q.get('layout')]) state.layout = q.get('layout');
+  if (q.get('grade')) state.grade = q.get('grade');
+  if (q.get('caption')) state.caption = q.get('caption');
+  if (q.get('subtitle')) state.subtitle = q.get('subtitle');
+  if (q.get('size')) state.size = q.get('size');
+  if (q.get('photo')) {
+    const count = LAYOUTS[state.layout].panels;
+    state.panels = [];
+    for (let i = 0; i < count; i++) {
+      state.panels.push({ photo: q.get('photo'), zoom: 1, ox: 0, oy: 0 });
+    }
+    await vc.loadPhoto(q.get('photo'));
+  }
+  state.selected = 0;
+  vc.render();
+  await document.fonts.ready;
+  vc.render();
+}
+
+window.__vc.stage = stageScene;
+window.__vc.staged = applyQuery(window.location.search);
